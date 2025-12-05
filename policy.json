@@ -1,0 +1,49 @@
+{
+  "known_systems": ["aws", "slack", "jira", "okta", "github", "netsuite", "gsuite", "confluence"],
+  "roles": {
+    "Engineering": {
+      "allowed_systems": ["aws", "github", "slack", "jira"]
+    },
+    "SRE": {
+      "allowed_systems": ["aws", "slack", "jira"]
+    },
+    "Support": {
+      "allowed_systems": ["slack", "jira", "gsuite"]
+    },
+    "Finance": {
+      "allowed_systems": ["netsuite", "gsuite"]
+    },
+    "HR": {
+      "allowed_systems": ["gsuite", "slack"]
+    }
+  },
+  "sensitive_actions": {
+    "admin_access": { "rule": "DENY" },
+    "write_access": { "rule": "REQUIRES_APPROVAL" },
+    "assign_admin": { "rule": "DENY" }
+  },
+  "system_specific_rules": {
+    "slack": {
+      "restricted_channels": ["#exec-private", "#security-incident"],
+      "auto_approve_channels": ["#eng-help", "#it-help"]
+    },
+    "jira": {
+      "restricted_projects": ["SEC", "FIN"],
+      "auto_approve_projects": ["HELP"]
+    }
+  },
+  "hardware_budget": {
+    "max_per_request": 2500
+  },
+  "allowed_intents": [
+    "request_access",
+    "revoke_access",
+    "request_channel_access",
+    "modify_permissions",
+    "request_admin_access",
+    "request_hardware",
+    "offboarding_actions"
+  ],
+  "resource_types": ["slack-channel", "jira-project", "aws-db", "hardware-model", "email-address"],
+  "action_types": ["read_access", "write_access", "admin_access", "revoke_access"]
+}

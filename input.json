@@ -1,0 +1,20 @@
+﻿[
+  {
+    "id": 1,
+    "user": "alice",
+    "groups": ["Engineering"],
+    "text": "Please grant me read access to prod-db so I can debug."
+  },
+  {
+    "id": 2,
+    "user": "bob",
+    "groups": ["Support"],
+    "text": "Can you restart the cache cluster because of elevated latency?"
+  },
+  {
+    "id": 3,
+    "user": "carol",
+    "groups": ["Marketing"],
+    "text": "Deploy the new build to frontend-service." 
+  }
+]
