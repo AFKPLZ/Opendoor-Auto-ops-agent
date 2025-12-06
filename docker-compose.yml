@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  auto-ops-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: auto-ops-agent:latest
+    container_name: auto-ops-agent
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4.1}
+      - MAX_TOOL_CALLS=${MAX_TOOL_CALLS:-8}
+      - RISK_THRESHOLD=${RISK_THRESHOLD:-0.7}
+      - MALICIOUS_THRESHOLD=${MALICIOUS_THRESHOLD:-0.5}
+    volumes:
+      - ./input.json:/app/input.json:ro
+      - ./logs:/app/logs
+      - ./policy.json:/app/policy.json:ro
+    command: ["--input", "/app/input.json"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "src/health.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    resources:
+      limits:
+        cpus: '1.0'
+        memory: 512M
+      reservations:
+        cpus: '0.25'
+        memory: 256M
