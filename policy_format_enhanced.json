@@ -1,0 +1,246 @@
+{
+  "known_systems": ["AWS", "Slack", "Jira", "GitHub", "Okta", "NetSuite"],
+
+  "roles": {
+    "Engineering": {
+      "allowed_systems": ["Slack", "Jira", "GitHub", "AWS"],
+      "max_hardware_budget": 3000,
+      "system_permissions": {
+        "AWS": {
+          "allowed_services": ["EC2", "S3", "Lambda", "RDS"],
+          "allowed_actions": ["read", "write"],
+          "allowed_resources": [
+            "arn:aws:s3:::dev-bucket/*",
+            "arn:aws:ec2:us-east-1:*:instance/*"
+          ],
+          "denied_resources": [
+            "arn:aws:s3:::prod-secrets/*"
+          ]
+        },
+        "Slack": {
+          "allowed_channels": ["#engineering", "#general", "#dev-*"],
+          "restricted_channels": ["#executive-*"],
+          "can_create_channels": true,
+          "can_invite_users": false
+        },
+        "GitHub": {
+          "allowed_repos": ["opendoor/backend", "opendoor/frontend"],
+          "allowed_actions": ["read", "write", "pull_request"],
+          "denied_actions": ["admin", "delete_repo"],
+          "branch_protection": {
+            "can_push_to_main": false,
+            "can_approve_prs": true
+          }
+        },
+        "Jira": {
+          "allowed_projects": ["ENG", "SUPPORT"],
+          "allowed_actions": ["create_issue", "edit_issue", "comment"],
+          "denied_actions": ["delete_project", "manage_users"]
+        }
+      }
+    },
+
+    "Finance": {
+      "allowed_systems": ["Slack", "Jira", "NetSuite", "Excel"],
+      "max_hardware_budget": 2000,
+      "system_permissions": {
+        "NetSuite": {
+          "allowed_modules": ["AP", "AR", "GL", "Reports"],
+          "allowed_actions": ["read", "create_transaction", "approve_transaction"],
+          "denied_actions": ["delete_transaction", "close_period"],
+          "approval_limits": {
+            "max_transaction_amount": 10000
+          }
+        },
+        "Slack": {
+          "allowed_channels": ["#finance", "#general"],
+          "can_create_channels": false
+        },
+        "Jira": {
+          "allowed_projects": ["FIN"],
+          "allowed_actions": ["create_issue", "edit_issue"]
+        }
+      }
+    },
+
+    "Security": {
+      "allowed_systems": ["*"],
+      "can_revoke_access": true,
+      "max_hardware_budget": 5000,
+      "system_permissions": {
+        "AWS": {
+          "allowed_services": ["*"],
+          "allowed_actions": ["read", "write", "admin"],
+          "allowed_resources": ["*"],
+          "audit_only": ["SecurityHub", "CloudTrail", "GuardDuty"]
+        },
+        "Okta": {
+          "allowed_actions": ["read", "create_user", "suspend_user", "reset_mfa"],
+          "denied_actions": ["delete_user", "assign_super_admin"],
+          "can_manage_groups": true,
+          "restricted_groups": ["Super Admins"]
+        },
+        "Slack": {
+          "allowed_channels": ["*"],
+          "can_export_data": true,
+          "can_manage_workspace": true
+        }
+      }
+    },
+
+    "Interns": {
+      "allowed_systems": ["Slack", "Jira"],
+      "max_hardware_budget": 1500,
+      "system_permissions": {
+        "Slack": {
+          "allowed_channels": ["#general", "#interns"],
+          "can_create_channels": false,
+          "can_dm_only_team": true
+        },
+        "Jira": {
+          "allowed_projects": ["INTERN"],
+          "allowed_actions": ["read", "comment"],
+          "denied_actions": ["create_issue", "edit_issue", "assign"]
+        }
+      }
+    }
+  },
+
+  "sensitive_actions": {
+    "AWS": {
+      "write_access": {
+        "rule": "REQUIRES_APPROVAL",
+        "applies_to_services": ["RDS", "DynamoDB", "S3"],
+        "approval_required_from": ["Engineering Manager", "Security"]
+      },
+      "admin_access": {
+        "rule": "DENY"
+      },
+      "production_access": {
+        "rule": "REQUIRES_APPROVAL",
+        "resource_pattern": "*prod*",
+        "requires_justification": true,
+        "max_duration_hours": 4
+      }
+    },
+    "Okta": {
+      "create_user": "REQUIRES_APPROVAL",
+      "delete_user": "REQUIRES_APPROVAL",
+      "assign_admin": "DENY",
+      "admin_access": "DENY",
+      "reset_mfa": {
+        "rule": "REQUIRES_APPROVAL",
+        "approval_required_from": ["Security"]
+      }
+    },
+    "GitHub": {
+      "admin_access": "DENY",
+      "delete_repo": "DENY",
+      "force_push": {
+        "rule": "DENY",
+        "branches": ["main", "master", "production"]
+      }
+    }
+  },
+
+  "system_specific_rules": {
+    "Slack": {
+      "auto_approve_channels": ["#general", "#random"],
+      "restricted_channels": ["#executive-confidential", "#board-private"],
+      "channel_naming_convention": "^[a-z0-9-]+$",
+      "max_private_channels_per_user": 10
+    },
+    "AWS": {
+      "require_mfa": true,
+      "session_duration_hours": 4,
+      "production_environments": ["prod", "production", "prd"],
+      "cost_alert_threshold_usd": 1000
+    },
+    "GitHub": {
+      "protected_branches": ["main", "master", "production"],
+      "require_code_review": true,
+      "min_reviewers": 2,
+      "auto_approve_repos": ["opendoor/docs"]
+    }
+  },
+
+  "time_based_rules": {
+    "AWS": {
+      "production_change_window": {
+        "allowed_days": ["Monday", "Tuesday", "Wednesday", "Thursday"],
+        "allowed_hours": "09:00-17:00",
+        "timezone": "America/Los_Angeles",
+        "emergency_override_roles": ["Security", "SRE"]
+      }
+    }
+  },
+
+  "compliance_rules": {
+    "data_classification": {
+      "PII": {
+        "allowed_roles": ["Security", "Legal"],
+        "requires_justification": true,
+        "audit_all_access": true
+      },
+      "CONFIDENTIAL": {
+        "allowed_roles": ["Engineering", "Security"],
+        "requires_approval": true
+      }
+    }
+  },
+
+  "allowed_intents": [
+    "request_access",
+    "request_channel_access",
+    "request_admin_access",
+    "revoke_access",
+    "request_hardware"
+  ],
+
+  "action_types": [
+    "read_access",
+    "write_access",
+    "admin_access",
+    "revoke_access"
+  ],
+
+  "resource_types": [
+    "slack_channel",
+    "aws_resource",
+    "github_repo",
+    "jira_project",
+    "database",
+    "hardware"
+  ],
+
+  "_documentation": {
+    "description": "Enhanced policy format with granular role-based permissions",
+    "design_principles": [
+      "Hierarchical Permission Model: Role → System → Service/Module → Action → Resource",
+      "Explicit Deny > Explicit Allow",
+      "Attribute-Based Access Control (ABAC) support",
+      "Approval Workflows with role-based approvers",
+      "Time-based and compliance-driven rules"
+    ],
+    "usage_example": {
+      "scenario": "Engineering user requests write access to S3 bucket",
+      "evaluation_flow": [
+        "1. Check if 'AWS' in allowed_systems for Engineering role",
+        "2. Check if 'S3' in allowed_services",
+        "3. Check if 'write' in allowed_actions",
+        "4. Check if resource matches allowed_resources pattern",
+        "5. Check if resource NOT in denied_resources",
+        "6. Check sensitive_actions for approval requirements",
+        "7. Apply time_based_rules if applicable",
+        "8. Return decision: APPROVED / DENIED / REQUIRES_APPROVAL"
+      ]
+    },
+    "implementation_notes": {
+      "backward_compatibility": "Existing policy.json format still works",
+      "migration_path": "Add system_permissions gradually, role by role",
+      "wildcard_support": "Use '*' for unrestricted access (Security role example)",
+      "pattern_matching": "Use glob patterns for channels (#dev-*), resources (arn:aws:s3:::*-bucket/*)",
+      "extensibility": "Add new systems by defining their permission schema under system_permissions"
+    }
+  }
+}

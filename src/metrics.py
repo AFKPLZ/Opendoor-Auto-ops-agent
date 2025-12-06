@@ -16,7 +16,6 @@ class AgentMetrics:
         self.tool_calls: int = 0
         self.tokens_prompt: int = 0
         self.tokens_completion: int = 0
-        self.tokens_total: int = 0
 
         # Parser metrics
         self.parser_latency_ms: int = 0
@@ -33,6 +32,14 @@ class AgentMetrics:
         # End-to-end metrics
         self.total_latency_ms: int = 0
 
+    @property
+    def tokens_total(self) -> int:
+        """Calculate total tokens as sum of prompt and completion tokens."""
+        return self.tokens_prompt + self.tokens_completion
+
     def finalize(self) -> Dict[str, Any]:
+        """Finalize metrics and return as dictionary with computed fields."""
         self.total_latency_ms = int((time.time() - self.start_time) * 1000)
-        return self.__dict__
+        result = self.__dict__.copy()
+        result["tokens_total"] = self.tokens_total
+        return result

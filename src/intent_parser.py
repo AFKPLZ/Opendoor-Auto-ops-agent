@@ -459,7 +459,6 @@ def parse_with_llm(text: str, metrics: AgentMetrics) -> ParserResult:
             if usage:
                 metrics.tokens_prompt += getattr(usage, "prompt_tokens", 0) or 0
                 metrics.tokens_completion += getattr(usage, "completion_tokens", 0) or 0
-                metrics.tokens_total += getattr(usage, "total_tokens", 0) or 0
         except Exception as exc:  # pragma: no cover
             logger.error("LLM call failed", extra={"extra": {"error": str(exc), "correlation_id": metrics.correlation_id}})
             return None, f"LLM call failed: {exc}"

@@ -52,7 +52,6 @@ def process_requests(requests: List[RequestRecord]) -> list[dict]:
             "parsed_intent": parsed_intent,
             "policy_decision": decision,
             "reason": reason,
-            "metrics": metrics.__dict__,
         }
 
         logger.info(
