@@ -9,7 +9,6 @@ AI-powered IT operations automation system that converts natural language reques
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design, capabilities, and data flow
 - **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Test suite and coverage
 - **[REVIEW.md](REVIEW.md)** - Strengths, weaknesses, and recommendations
-- **[CLAUDE.md](CLAUDE.md)** - AI assistant guidance (for Claude Code)
 
 ## 🚀 Quick Start
 
